@@ -31,7 +31,7 @@ The repository has a few configured "batect tasks" which essentially all spin up
 
 Run  ```./batect --list-tasks ``` to see the list of commands.
 
-```batect launch_source_target``` for instance will launch two docker containers both with a local postgres database and seed the source database with initial data.
+```./batect launch_source_target``` for instance will launch two docker containers both with a local postgres database and seed the source database with initial data.
 
 Batect automatically tears down & cleans up after the task finishes.
 
