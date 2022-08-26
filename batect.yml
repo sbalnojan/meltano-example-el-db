@@ -1,0 +1,73 @@
+containers:
+  build-env:
+    image: meltano/meltano:v2.4.0-python3.8
+    working_directory: /new_project
+    run_as_current_user:
+      enabled: true
+      home_directory: /home/container-user
+    volumes:
+      - local: ./new_project
+        container: /new_project
+        options: cached
+  
+  psql_cli:
+    image: postgres:13.4-bullseye
+    environment:
+      PGPASSWORD: password
+    volumes:
+      - local: ./csvs
+        container: /csvs
+
+  postgres_source:
+    image: postgres:13.4-bullseye
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: demo_source
+    volumes:
+      - local: ./csvs
+        container: /csvs
+        options: cached
+    ports:
+      - local: 5433
+        container: 5432 # psql -h postgres_source -p 5432 -U admin demo -c 'CREATE TABLE raw_customers (id SERIAL, first_name VARCHAR(50), last_name VARCHAR(50))'
+
+# CREATE TABLE raw_customers (id SERIAL first_name VARCHAR(50), last_name VARCHAR(50))
+# psql -h postgres_source -p 5432 -U admin demo -c "COPY raw_customers(id, first_name, last_name) FROM '/csvs/raw_customers.csv' DELIMITER ',' CSV HEADER;"
+  
+  postgres_target:
+    image: postgres:13.4-bullseye
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: demo_target
+    ports:
+      - local: 5432
+        container: 5432
+
+
+tasks:
+  ## Utility tasks
+  version:
+    description: Display version. Run this to check docker + meltano work. 
+    group: Utility tasks
+    run:
+      container: build-env
+      command: --version
+
+  launch_source_target:
+    description: ...
+    group: Do these tasks
+    dependencies:
+      - postgres_target
+      - postgres_source
+    run:
+      container: psql_cli
+      entrypoint: sh -c './csvs/stuff.sh; sh'
+
+  melt:
+    description: Open a shell in our cool meltano env to run some stuff. Make sure to launch_mock in a separate terminal tab!
+    group: Do these tasks
+    run:
+      container: build-env
+      entrypoint: sh

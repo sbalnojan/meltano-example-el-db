@@ -1,0 +1,33 @@
+version: 1
+default_environment: dev
+environments:
+- name: dev
+- name: staging
+- name: prod
+project_id: 37d81821-1385-4d4e-afae-1ea5cbd06ab5
+plugins:
+  extractors:
+  - name: tap-postgres
+    variant: transferwise
+    pip_url: pipelinewise-tap-postgres
+    config:
+      host: host.docker.internal
+      port: 5433
+      user: admin
+      password: password
+      dbname: demo_source
+      default_replication_method: FULL_TABLE
+    select:
+      - public-raw_customers.* # select all three attributes from the public schema inside the raw_customers table. 
+                              # use meltano select tap-postgres --list --all to view all selectable attributes
+
+  loaders: 
+  - name: target-postgres
+    variant: transferwise
+    pip_url: pipelinewise-target-postgres
+    config:
+      host: host.docker.internal
+      port: 5432
+      user: admin
+      password: password
+      dbname: demo_target
