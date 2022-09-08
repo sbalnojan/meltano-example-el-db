@@ -16,10 +16,15 @@ plugins:
       user: admin
       password: password
       dbname: demo_source
-      default_replication_method: FULL_TABLE
+      #default_replication_method: INCREMENTAL
+     #replication_key: "id"
     select:
       - public-raw_customers.* # select all three attributes from the public schema inside the raw_customers table. 
-                              # use meltano select tap-postgres --list --all to view all selectable attributes
+                              # use meltano select tap-postgres --list --all to view all selectable attributes+
+    metadata:
+      '*':
+        replication-method: INCREMENTAL
+        replication-key: id
 
   loaders: 
   - name: target-postgres
